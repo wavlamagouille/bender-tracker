@@ -2443,6 +2443,15 @@ function _applyCatchupDrinks() {
     S.log = [...catchupLog, ...S.log];
   }
 
+  // Update drink counter displays on home screen
+  document.getElementById('count-small').textContent    = S.smalls    || 0;
+  document.getElementById('count-pint').textContent     = S.pints     || 0;
+  document.getElementById('count-shot').textContent     = S.shots     || 0;
+  document.getElementById('count-wine').textContent     = S.wines     || 0;
+  document.getElementById('count-cocktail').textContent = S.cocktails || 0;
+  document.getElementById('count-water').textContent    = S.waters    || 0;
+  document.getElementById('count-joint').textContent    = S.joints    || 0;
+
   // Push full payload immediately so leaderboard updates for everyone
   if (CREW_REF && USERNAME) CREW_REF.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
   const total = Object.values(_cuCounts).reduce((a,b) => a+b, 0);
