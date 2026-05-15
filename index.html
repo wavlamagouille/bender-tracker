@@ -368,6 +368,12 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
       <div id="mm-venues-list"></div>
     </div>
     <div class="fm" style="font-size:9px;color:var(--muted);text-align:center;margin-top:12px">stats update live every 30s</div>
+    <div id="mm-kick-wrap" style="display:none;margin-top:16px">
+      <button id="mm-kick-btn" onclick="kickMember()" style="width:100%;padding:13px;background:transparent;border:1px solid var(--red);border-radius:14px;color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        KICK FROM SESSION
+      </button>
+    </div>
   </div>
 </div>
 
@@ -475,6 +481,73 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
     </div>
 
     <!-- Already in a session -->
+    <!-- Catch-up step: pre-existing drinks before joining -->
+    <div id="crew-modal-catchup" style="display:none">
+      <div class="fm" style="font-size:9px;color:var(--accent);margin-bottom:4px">CATCH UP 🍻</div>
+      <div class="fd" style="font-size:18px;color:var(--text);margin-bottom:4px">Already been drinking?</div>
+      <div class="fm" style="font-size:11px;color:var(--muted);margin-bottom:18px">Log drinks you had before joining so the leaderboard is accurate.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🍻</div>
+          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">SMALL BEER</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+            <button onclick="_cuAdj('smalls',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
+            <span id="cu-smalls" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
+            <button onclick="_cuAdj('smalls',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🍺</div>
+          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">PINT</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+            <button onclick="_cuAdj('pints',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
+            <span id="cu-pints" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
+            <button onclick="_cuAdj('pints',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🥃</div>
+          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">SHOT</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+            <button onclick="_cuAdj('shots',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
+            <span id="cu-shots" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
+            <button onclick="_cuAdj('shots',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🍷</div>
+          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">WINE</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+            <button onclick="_cuAdj('wines',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
+            <span id="cu-wines" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
+            <button onclick="_cuAdj('wines',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🍹</div>
+          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">COCKTAIL</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+            <button onclick="_cuAdj('cocktails',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
+            <span id="cu-cocktails" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
+            <button onclick="_cuAdj('cocktails',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;margin-bottom:6px">🌿</div>
+          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">JOINTS</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+            <button onclick="_cuAdj('joints',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
+            <span id="cu-joints" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
+            <button onclick="_cuAdj('joints',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="_cuConfirm()" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;cursor:pointer;touch-action:manipulation;margin-bottom:8px">JOIN SESSION →</button>
+      <button onclick="_cuSkip()" style="width:100%;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;touch-action:manipulation">Skip — I haven't had anything</button>
+    </div>
+
     <div id="crew-modal-active" style="display:none">
       <div style="text-align:center;margin-bottom:18px">
         <div class="fm" style="font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.1em">YOUR SESSION CODE</div>
@@ -1339,21 +1412,21 @@ async function joinCrewSessionWithCode(code) {
     showToast('⚠ That session expired — ask for a new code'); return;
   }
 
-  await ref.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
-  ref.child(`members/${fbKey(USERNAME)}`).onDisconnect().update({ sessionOn: false, disconnectedAt: firebase.database.ServerValue.TIMESTAMP });
+  // Session valid — open the crew modal on the catch-up step (same as manual join)
+  _pendingJoinRef  = ref;
+  _pendingJoinCode = code;
 
-  CREW_CODE = code; CREW_REF = ref; IS_HOST = false;
-  Profile.set('crewCode', code); Profile.set('crewHost', false);
+  // Reset catch-up counters
+  ['smalls','pints','shots','wines','cocktails','joints'].forEach(k => {
+    _cuCounts[k] = 0;
+    const el = document.getElementById(`cu-${k}`);
+    if (el) el.textContent = '0';
+  });
 
-  _subscribeSession();
-  _applyCrewUI();
-  showToast(`🔗 Joined session ${code}!`);
-  // Switch to session tab — defer slightly to let the UI settle
-  setTimeout(() => {
-    const sessionBtn = document.querySelector('.nav-btn');
-    switchTab('home', sessionBtn);
-    sessionBtn && sessionBtn.click();
-  }, 300);
+  // Open crew modal on catch-up step
+  const modal = document.getElementById('crew-modal');
+  if (modal) modal.style.display = 'flex';
+  _showCrewModalStep('catchup');
 }
 
 async function joinCrewSession() {
@@ -1431,6 +1504,31 @@ function _subscribeSession() {
     }
   });
   CREW_LISTENERS.push({ ref: activeRef, event: 'value' });
+
+  // 0. Kicked listener — detect if host kicks this user
+  const kickedRef = CREW_REF.child(`kicked/${fbKey(USERNAME)}`);
+  kickedRef.on('value', snap => {
+    if (!snap.exists()) return;
+    // We've been kicked — clean up and notify
+    CREW_LISTENERS.forEach(({ref, event}) => ref.off(event));
+    CREW_LISTENERS = [];
+    const code = CREW_CODE;
+    CREW_CODE = null; CREW_REF = null; IS_HOST = false;
+    CREW_MEMBERS = {}; CREW_FEED = []; LEADERBOARD_DATA = [];
+    Profile.set('crewCode', null);
+    closeCrewModal(); closeCrewChat();
+    const chatBtn = document.getElementById('chat-nav-btn');
+    if (chatBtn) chatBtn.style.display = 'none';
+    _updateCrewButtons();
+    const statusEl = document.getElementById('crew-profile-status');
+    if (statusEl) statusEl.style.display = 'none';
+    if (!S.on) hide('crew-section');
+    _updateCrewStartPrompt(); _updateFeedCrewUI();
+    renderFeed(); renderLeaderboard(); renderCrewSection();
+    // Show a prominent kicked modal
+    _showKickedModal(code);
+  });
+  CREW_LISTENERS.push({ ref: kickedRef, event: 'value' });
 
   // 1. Members — live drink counts, BAC, BPH
   // Use child_changed + child_added so members who go offline (sessionOn:false)
@@ -1766,30 +1864,104 @@ function sendChatMessage() {
 
 function sendImHere() {
   if (!CREW_CODE || !DB || !USERNAME) { showToast('⚠ Join a crew session first'); return; }
+
   const btn = document.getElementById('im-here-btn');
   if (btn) { btn.textContent = '⏳'; btn.style.opacity = '0.5'; btn.disabled = true; }
   const restore = () => { if (btn) { btn.textContent = '📍'; btn.style.opacity = '1'; btn.disabled = false; } };
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
-      DB.ref(`sessions/${CREW_CODE}/chat`).push({
-        user: USERNAME,
-        type: 'location',
-        lat, lng,
-        acc: Math.round(acc),
-        text: `📍 I'm here! ${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-        ts: Date.now()
-      });
-      restore();
-      showToast('📍 Location shared with the crew!');
-    },
-    err => {
-      restore();
-      if (err.code === 1) showToast('⚠ Location blocked — allow it in browser settings');
-      else showToast('⚠ Could not get location — try again');
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
-  );
+
+  const doGet = () => {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
+        DB.ref(`sessions/${CREW_CODE}/chat`).push({
+          user: USERNAME,
+          type: 'location',
+          lat, lng,
+          acc: Math.round(acc),
+          text: `📍 I'm here! ${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          ts: Date.now()
+        });
+        restore();
+        showToast('📍 Location shared with the crew!');
+      },
+      err => {
+        restore();
+        if (err.code === 1) {
+          // Permission denied — browser won't re-prompt, show in-app guidance
+          _showLocationDeniedModal();
+        } else if (err.code === 2) {
+          showToast('⚠ Location unavailable — try moving outside');
+        } else {
+          showToast('⚠ Location timed out — try again');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+    );
+  };
+
+  // Check permission state first if the API is available
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: 'geolocation' }).then(result => {
+      if (result.state === 'denied') {
+        restore();
+        _showLocationDeniedModal();
+      } else {
+        // 'granted' or 'prompt' — just call getCurrentPosition, browser will prompt if needed
+        doGet();
+      }
+    }).catch(() => doGet()); // permissions API not supported — just try
+  } else {
+    doGet();
+  }
+}
+
+function _showKickedModal(code) {
+  const existing = document.getElementById('kicked-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'kicked-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center">
+      <div style="font-size:44px;margin-bottom:14px">🚷</div>
+      <div class="fd" style="font-size:22px;color:var(--red);margin-bottom:8px">You've been kicked</div>
+      <div class="fm" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:22px">The host removed you from session <span style="color:var(--accent);font-family:'JetBrains Mono',monospace">${code}</span>.<br>Your drinks are still tracked locally.</div>
+      <button onclick="document.getElementById('kicked-modal').remove()"
+        style="width:100%;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:var(--text);cursor:pointer;touch-action:manipulation">
+        OK
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function _showLocationDeniedModal() {
+  // Remove any existing one
+  const existing = document.getElementById('location-denied-modal');
+  if (existing) existing.remove();
+
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let instruction = 'Open your browser settings, find this site under Permissions, and allow Location.';
+  if (isAndroid) instruction = 'Tap the 🔒 lock icon in Chrome's address bar → Permissions → Location → Allow, then try again.';
+  if (isIOS)     instruction = 'Go to Settings → Safari → Location → Allow, then reload the app.';
+
+  const modal = document.createElement('div');
+  modal.id = 'location-denied-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border-b);border-radius:20px;padding:24px;max-width:360px;width:100%;text-align:center">
+      <div style="font-size:40px;margin-bottom:12px">📍</div>
+      <div class="fd" style="font-size:18px;color:var(--text);margin-bottom:8px">Location blocked</div>
+      <div class="fm" style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px">${instruction}</div>
+      <button onclick="document.getElementById('location-denied-modal').remove()"
+        style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;touch-action:manipulation">
+        Got it
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 // ── CLOSE session — host only, removes everyone ───────────────────────────────
@@ -1859,10 +2031,13 @@ function _restoreVenuePinsOnMap() {
 // ── Member profile modal ──────────────────────────────────────────────────────
 let memberModalListener = null;
 
+let _currentMemberModal = null;
+
 function openMemberModal(username) {
   const modal = document.getElementById('member-modal');
   if (!modal) return;
   modal.style.display = 'flex';
+  _currentMemberModal = username;
 
   // If it's the current user, build payload from live local state
   if (username === USERNAME) {
@@ -1950,6 +2125,15 @@ function _populateMemberModal(m) {
   el('mm-joints').textContent = m.joints   || 0;
 
   // Venue trail
+  // Kick button — only for host, only on other members
+  const kickWrap = el('mm-kick-wrap');
+  const kickBtn  = el('mm-kick-btn');
+  if (kickWrap) {
+    const showKick = IS_HOST && m.username !== USERNAME;
+    kickWrap.style.display = showKick ? 'block' : 'none';
+    if (kickBtn) kickBtn.textContent = `⛔ KICK ${m.username.toUpperCase()} FROM SESSION`;
+  }
+
   const venueBox  = el('mm-venues');
   const venueList = el('mm-venues-list');
   if (m.venues && m.venues.length && venueBox && venueList) {
@@ -1969,9 +2153,28 @@ function _populateMemberModal(m) {
   }
 }
 
+function kickMember() {
+  if (!IS_HOST || !CREW_REF || !_currentMemberModal) return;
+  if (_currentMemberModal === USERNAME) return;
+  const target = _currentMemberModal;
+  const btn = document.getElementById('mm-kick-btn');
+  if (btn) { btn.textContent = '⏳ Kicking…'; btn.disabled = true; }
+  // Write a kicked flag the target will detect; also remove their member entry
+  CREW_REF.child(`kicked/${fbKey(target)}`).set({ by: USERNAME, at: Date.now() }).then(() => {
+    return CREW_REF.child(`members/${fbKey(target)}`).remove();
+  }).then(() => {
+    closeMemberModal();
+    showToast(`⛔ ${target} was kicked from the session`);
+  }).catch(() => {
+    if (btn) { btn.textContent = `⛔ KICK ${target.toUpperCase()} FROM SESSION`; btn.disabled = false; }
+    showToast('⚠ Could not kick — try again');
+  });
+}
+
 function closeMemberModal() {
   const modal = document.getElementById('member-modal');
   if (modal) modal.style.display = 'none';
+  _currentMemberModal = null;
   if (memberModalListener) {
     if (typeof memberModalListener === 'number') clearInterval(memberModalListener);
     else memberModalListener.off?.('value');
@@ -2094,7 +2297,7 @@ function closeCrewModal() {
 }
 
 function _showCrewModalStep(step) {
-  ['choose','creating','joining','active'].forEach(s => {
+  ['choose','creating','joining','catchup','active'].forEach(s => {
     const el = document.getElementById(`crew-modal-${s}`);
     if (el) el.style.display = s === step ? 'block' : 'none';
   });
@@ -2144,6 +2347,60 @@ async function crewModalJoin() {
     return;
   }
 
+  // Session valid — show catch-up screen before fully joining
+  if (btn) { btn.textContent = 'JOIN SESSION →'; btn.disabled = false; }
+
+  // Store pending join state
+  _pendingJoinRef  = ref;
+  _pendingJoinCode = code;
+  inputEl.value = '';
+
+  // Reset catch-up counters
+  ['smalls','pints','shots','wines','cocktails','joints'].forEach(k => {
+    _cuCounts[k] = 0;
+    const el = document.getElementById(`cu-${k}`);
+    if (el) el.textContent = '0';
+  });
+
+  _showCrewModalStep('catchup');
+}
+
+// ── Catch-up state ────────────────────────────────────────────────────────────
+let _pendingJoinRef  = null;
+let _pendingJoinCode = null;
+const _cuCounts = { smalls:0, pints:0, shots:0, wines:0, cocktails:0, joints:0 };
+
+function _cuAdj(key, delta) {
+  _cuCounts[key] = Math.max(0, (_cuCounts[key] || 0) + delta);
+  const el = document.getElementById(`cu-${key}`);
+  if (el) el.textContent = _cuCounts[key];
+}
+
+async function _cuConfirm() {
+  await _doJoin(_cuCounts);
+}
+
+async function _cuSkip() {
+  await _doJoin({});
+}
+
+async function _doJoin(catchupDrinks) {
+  const ref  = _pendingJoinRef;
+  const code = _pendingJoinCode;
+  if (!ref || !code) return;
+  _pendingJoinRef = null; _pendingJoinCode = null;
+
+  // Apply catch-up drinks into S before writing payload
+  if (catchupDrinks.smalls)    S.smalls    = (S.smalls    || 0) + catchupDrinks.smalls;
+  if (catchupDrinks.pints)     S.pints     = (S.pints     || 0) + catchupDrinks.pints;
+  if (catchupDrinks.shots)     S.shots     = (S.shots     || 0) + catchupDrinks.shots;
+  if (catchupDrinks.wines)     S.wines     = (S.wines     || 0) + catchupDrinks.wines;
+  if (catchupDrinks.cocktails) S.cocktails = (S.cocktails || 0) + catchupDrinks.cocktails;
+  if (catchupDrinks.joints)    S.joints    = (S.joints    || 0) + catchupDrinks.joints;
+
+  // Update home screen counters to reflect catch-up drinks
+  _updateDrinkDisplays && _updateDrinkDisplays();
+
   await ref.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
   ref.child(`members/${fbKey(USERNAME)}`).onDisconnect().update({ sessionOn: false, disconnectedAt: firebase.database.ServerValue.TIMESTAMP });
 
@@ -2152,11 +2409,10 @@ async function crewModalJoin() {
 
   _subscribeSession();
   _applyCrewUI();
-  showToast(`🔗 Joined session ${code}!`);
 
-  if (btn) { btn.textContent = 'JOIN SESSION →'; btn.disabled = false; }
+  const total = Object.values(catchupDrinks).reduce((a,b) => a+b, 0);
+  showToast(total > 0 ? `🔗 Joined! ${total} catch-up drink${total>1?'s':''} logged.` : `🔗 Joined session ${code}!`);
   closeCrewModal();
-  inputEl.value = '';
 }
 
 function _renderCrewModalMembers() {
@@ -5179,7 +5435,14 @@ function openAppQRModal() {
   const modal = document.getElementById('app-qr-modal');
   if (modal) modal.style.display = 'flex';
 
-  const url = window.location.href.split('?')[0].split('#')[0];
+  const _plainUrl = window.location.href.split('?')[0].split('#')[0];
+  const _isAndroid = /android/i.test(navigator.userAgent);
+  const _urlObj = new URL(_plainUrl);
+  const url = _isAndroid
+    ? 'intent://' + _urlObj.host + _urlObj.pathname +
+      '#Intent;scheme=https;action=android.intent.action.VIEW;' +
+      'category=android.intent.category.BROWSABLE;package=com.android.chrome;end'
+    : _plainUrl;
   document.getElementById('app-qr-url').textContent = url;
 
   _loadQRLib(() => {
@@ -5243,9 +5506,17 @@ function openQRModal() {
   const modal = document.getElementById('qr-modal');
   if (modal) modal.style.display = 'flex';
 
-  // Build the deep-link URL
+  // Build the deep-link URL — use intent:// so Android camera hands off to browser instead of WebView
   const base = window.location.href.split('?')[0].split('#')[0];
-  const url  = base + '?join=' + encodeURIComponent(CREW_CODE);
+  const plainUrl = base + '?join=' + encodeURIComponent(CREW_CODE);
+  // intent:// forces Android to open in Chrome/default browser instead of camera's built-in WebView
+  // iOS camera always opens in Safari natively so we detect and branch
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const urlObj = new URL(plainUrl);
+  const intentUrl = 'intent://' + urlObj.host + urlObj.pathname + urlObj.search +
+    '#Intent;scheme=https;action=android.intent.action.VIEW;' +
+    'category=android.intent.category.BROWSABLE;package=com.android.chrome;end';
+  const url = isAndroid ? intentUrl : plainUrl;
 
   document.getElementById('qr-code-label').textContent = 'Session: ' + CREW_CODE;
 
