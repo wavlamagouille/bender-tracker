@@ -503,6 +503,19 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
       </div>
     </div>
 
+    <!-- How long ago picker -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:10px;letter-spacing:.06em">⏱ HOW LONG AGO DID YOU START DRINKING?</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="cu-time-btn" onclick="_cuSetTime(0.5)" style="flex:1;min-width:60px;padding:8px 4px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;touch-action:manipulation">30min</button>
+        <button class="cu-time-btn" onclick="_cuSetTime(1)"   style="flex:1;min-width:60px;padding:8px 4px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;touch-action:manipulation">1hr</button>
+        <button class="cu-time-btn" onclick="_cuSetTime(2)"   style="flex:1;min-width:60px;padding:8px 4px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;touch-action:manipulation">2hr</button>
+        <button class="cu-time-btn" onclick="_cuSetTime(3)"   style="flex:1;min-width:60px;padding:8px 4px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;touch-action:manipulation">3hr</button>
+        <button class="cu-time-btn" onclick="_cuSetTime(4)"   style="flex:1;min-width:60px;padding:8px 4px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;touch-action:manipulation">4hr+</button>
+      </div>
+      <div id="cu-time-label" class="fm" style="font-size:10px;color:var(--accent);margin-top:8px;text-align:center;min-height:14px"></div>
+    </div>
+
     <button id="cu-confirm-btn" style="width:100%;padding:16px;background:var(--accent);color:#000;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:16px;cursor:pointer;touch-action:manipulation;margin-bottom:10px;display:block">JOIN SESSION →</button>
     <button id="cu-skip-btn" style="width:100%;padding:12px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;touch-action:manipulation;display:block">Skip — haven't had anything yet</button>
   </div>
@@ -1357,6 +1370,7 @@ let SESSION_FINAL_SNAPSHOT = null; // saved when crew session closes
 let _pendingJoinRef  = null;
 let _pendingJoinCode = null;
 const _cuCounts = { smalls:0, pints:0, shots:0, wines:0, cocktails:0, joints:0 };
+let _cuHoursAgo = 1; // default 1 hour
 
 function genCode() {
   // e.g. "BT4X9Z"
@@ -2349,13 +2363,37 @@ function _showCrewModalStep(step) {
   });
 }
 
+function _cuSetTime(hrs) {
+  _cuHoursAgo = hrs;
+  // Highlight selected button
+  document.querySelectorAll('.cu-time-btn').forEach(b => {
+    b.style.background = 'var(--surface2)';
+    b.style.borderColor = 'var(--border)';
+    b.style.color = 'var(--text2)';
+  });
+  event.target.style.background = 'var(--accent)';
+  event.target.style.borderColor = 'var(--accent)';
+  event.target.style.color = '#000';
+  const lbl = document.getElementById('cu-time-label');
+  if (lbl) lbl.textContent = hrs < 1 ? `Started ~${hrs*60|0} minutes ago` : `Started ~${hrs} hour${hrs!==1?'s':''} ago`;
+}
+
 function _showCatchupModal() {
-  // Reset counters
+  // Reset counters and time
+  _cuHoursAgo = 1;
   ['smalls','pints','shots','wines','cocktails','joints'].forEach(k => {
     _cuCounts[k] = 0;
     const el = document.getElementById('cu-' + k);
     if (el) el.textContent = '0';
   });
+  // Reset time picker UI
+  document.querySelectorAll('.cu-time-btn').forEach(b => {
+    b.style.background = 'var(--surface2)';
+    b.style.borderColor = 'var(--border)';
+    b.style.color = 'var(--text2)';
+  });
+  const lbl = document.getElementById('cu-time-label');
+  if (lbl) lbl.textContent = '';
   const confirmBtn = document.getElementById('cu-confirm-btn');
   const skipBtn    = document.getElementById('cu-skip-btn');
   if (confirmBtn) confirmBtn.onclick = _applyCatchupDrinks;
@@ -2371,6 +2409,40 @@ function _applyCatchupDrinks() {
   if (_cuCounts.wines)     S.wines     = (S.wines     || 0) + _cuCounts.wines;
   if (_cuCounts.cocktails) S.cocktails = (S.cocktails || 0) + _cuCounts.cocktails;
   if (_cuCounts.joints)    S.joints    = (S.joints    || 0) + _cuCounts.joints;
+
+  // Spread drinks across the declared time window so BAC is realistic
+  // Back-date S.startedAt so S.sec reflects how long they've actually been drinking
+  const catchupSecs = Math.round(_cuHoursAgo * 3600);
+  if (!S.on) {
+    // Not in a personal session — fake a start time in the past
+    S.startedAt = Date.now() - catchupSecs * 1000;
+    S.sec       = catchupSecs;
+  } else {
+    // Already in a session — extend startedAt back if catchup is longer
+    if (catchupSecs > S.sec) {
+      S.startedAt = Date.now() - catchupSecs * 1000;
+    }
+  }
+
+  // Build log entries spread evenly across the time window (excluding joints/waters)
+  const drinkEntries = [
+    ...Array(_cuCounts.smalls    || 0).fill({ g: G_PER_SMALL }),
+    ...Array(_cuCounts.pints     || 0).fill({ g: G_PER_PINT  }),
+    ...Array(_cuCounts.shots     || 0).fill({ g: G_PER_SHOT  }),
+    ...Array(_cuCounts.wines     || 0).fill({ g: 14           }),
+    ...Array(_cuCounts.cocktails || 0).fill({ g: G_PER_COCKTAIL }),
+  ];
+  if (drinkEntries.length > 0) {
+    const interval = catchupSecs / (drinkEntries.length + 1);
+    // Prepend to log so chart shows history
+    const catchupLog = drinkEntries.map((d, i) => {
+      const secAgo = catchupSecs - Math.round(interval * (i + 1));
+      // sec in log is seconds-since-session-start at the time of that drink
+      return { sec: Math.max(0, catchupSecs - secAgo), g: ethanolG() };
+    });
+    S.log = [...catchupLog, ...S.log];
+  }
+
   // Push full payload immediately so leaderboard updates for everyone
   if (CREW_REF && USERNAME) CREW_REF.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
   const total = Object.values(_cuCounts).reduce((a,b) => a+b, 0);
