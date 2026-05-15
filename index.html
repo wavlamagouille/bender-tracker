@@ -1430,7 +1430,17 @@ async function joinCrewSessionWithCode(code) {
     if (el) el.textContent = '0';
   });
 
-  _showCatchupModal(ref, code);
+  // Join directly then offer catchup
+  await ref.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
+  ref.child(`members/${fbKey(USERNAME)}`).onDisconnect().update({ sessionOn: false, disconnectedAt: firebase.database.ServerValue.TIMESTAMP });
+
+  CREW_CODE = code; CREW_REF = ref; IS_HOST = false;
+  Profile.set('crewCode', code); Profile.set('crewHost', false);
+
+  _subscribeSession();
+  _applyCrewUI();
+  showToast(`🔗 Joined session ${code}!`);
+  _showCatchupModal();
 }
 
 async function joinCrewSession() {
@@ -2308,22 +2318,33 @@ function _showCrewModalStep(step) {
   });
 }
 
-function _showCatchupModal(ref, code) {
+function _showCatchupModal() {
   // Reset counters
   ['smalls','pints','shots','wines','cocktails','joints'].forEach(k => {
     _cuCounts[k] = 0;
     const el = document.getElementById('cu-' + k);
     if (el) el.textContent = '0';
   });
-  // Wire buttons with direct closure over ref+code
   const confirmBtn = document.getElementById('cu-confirm-btn');
   const skipBtn    = document.getElementById('cu-skip-btn');
-  if (confirmBtn) confirmBtn.onclick = function() { _doJoin(_cuCounts, ref, code); };
-  if (skipBtn)    skipBtn.onclick    = function() { _doJoin({}, ref, code); };
-  // Close crew modal, show catchup modal
-  closeCrewModal();
+  if (confirmBtn) confirmBtn.onclick = _applyCatchupDrinks;
+  if (skipBtn)    skipBtn.onclick    = _closeCatchupModal;
   const m = document.getElementById('catchup-modal');
   if (m) m.style.display = 'flex';
+}
+
+function _applyCatchupDrinks() {
+  if (_cuCounts.smalls)    S.smalls    = (S.smalls    || 0) + _cuCounts.smalls;
+  if (_cuCounts.pints)     S.pints     = (S.pints     || 0) + _cuCounts.pints;
+  if (_cuCounts.shots)     S.shots     = (S.shots     || 0) + _cuCounts.shots;
+  if (_cuCounts.wines)     S.wines     = (S.wines     || 0) + _cuCounts.wines;
+  if (_cuCounts.cocktails) S.cocktails = (S.cocktails || 0) + _cuCounts.cocktails;
+  if (_cuCounts.joints)    S.joints    = (S.joints    || 0) + _cuCounts.joints;
+  // Push updated stats to Firebase
+  if (CREW_REF && USERNAME) CREW_REF.child(`members/${fbKey(USERNAME)}`).update(myMemberPayload());
+  const total = Object.values(_cuCounts).reduce((a,b) => a+b, 0);
+  if (total > 0) showToast(`🍻 ${total} catch-up drink${total>1?'s':''} logged!`);
+  _closeCatchupModal();
 }
 
 function _closeCatchupModal() {
@@ -2363,7 +2384,7 @@ async function crewModalJoin() {
   if (!DB) { showToast('⚠ Connecting to server…'); return; }
 
   const btn = document.getElementById('crew-join-btn');
-  if (btn) { btn.textContent = 'CHECKING…'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'JOINING…'; btn.disabled = true; }
   const restore = () => { if (btn) { btn.textContent = 'JOIN SESSION →'; btn.disabled = false; } };
 
   try {
@@ -2378,9 +2399,22 @@ async function crewModalJoin() {
       return;
     }
 
-    restore();
+    // Join directly
+    await ref.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
+    ref.child(`members/${fbKey(USERNAME)}`).onDisconnect().update({ sessionOn: false, disconnectedAt: firebase.database.ServerValue.TIMESTAMP });
+
+    CREW_CODE = code; CREW_REF = ref; IS_HOST = false;
+    Profile.set('crewCode', code); Profile.set('crewHost', false);
+
+    _subscribeSession();
+    _applyCrewUI();
     inputEl.value = '';
-    _showCatchupModal(ref, code);
+    restore();
+    closeCrewModal();
+    showToast(`🔗 Joined session ${code}!`);
+
+    // Show catchup modal after joining so they can log pre-existing drinks
+    _showCatchupModal();
 
   } catch(e) {
     console.error('crewModalJoin error:', e);
@@ -2405,38 +2439,7 @@ async function _cuSkip() {
   await _doJoin({});
 }
 
-async function _doJoin(catchupDrinks, ref, code) {
-  // Accept direct args (preferred) or fall back to globals
-  ref  = ref  || _pendingJoinRef;
-  code = code || _pendingJoinCode;
-  if (!ref || !code) { showToast('⚠ Session reference lost — try again'); return; }
-  _pendingJoinRef = null; _pendingJoinCode = null;
 
-  // Apply catch-up drinks into S before writing payload
-  if (catchupDrinks.smalls)    S.smalls    = (S.smalls    || 0) + catchupDrinks.smalls;
-  if (catchupDrinks.pints)     S.pints     = (S.pints     || 0) + catchupDrinks.pints;
-  if (catchupDrinks.shots)     S.shots     = (S.shots     || 0) + catchupDrinks.shots;
-  if (catchupDrinks.wines)     S.wines     = (S.wines     || 0) + catchupDrinks.wines;
-  if (catchupDrinks.cocktails) S.cocktails = (S.cocktails || 0) + catchupDrinks.cocktails;
-  if (catchupDrinks.joints)    S.joints    = (S.joints    || 0) + catchupDrinks.joints;
-
-  // Update home screen counters to reflect catch-up drinks
-  _updateDrinkDisplays && _updateDrinkDisplays();
-
-  await ref.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
-  ref.child(`members/${fbKey(USERNAME)}`).onDisconnect().update({ sessionOn: false, disconnectedAt: firebase.database.ServerValue.TIMESTAMP });
-
-  CREW_CODE = code; CREW_REF = ref; IS_HOST = false;
-  Profile.set('crewCode', code); Profile.set('crewHost', false);
-
-  _subscribeSession();
-  _applyCrewUI();
-
-  const total = Object.values(catchupDrinks).reduce((a,b) => a+b, 0);
-  showToast(total > 0 ? `🔗 Joined! ${total} catch-up drink${total>1?'s':''} logged.` : `🔗 Joined session ${code}!`);
-  _closeCatchupModal();
-  closeCrewModal();
-}
 
 function _renderCrewModalMembers() {
   const el = document.getElementById('crew-modal-members');
