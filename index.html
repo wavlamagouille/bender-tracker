@@ -544,8 +544,8 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
         </div>
       </div>
 
-      <button onclick="_cuConfirm()" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;cursor:pointer;touch-action:manipulation;margin-bottom:8px">JOIN SESSION →</button>
-      <button onclick="_cuSkip()" style="width:100%;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;touch-action:manipulation">Skip — I haven't had anything</button>
+      <button id="cu-confirm-btn" onclick="_cuConfirm()" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;cursor:pointer;touch-action:manipulation;margin-bottom:8px">JOIN SESSION →</button>
+      <button id="cu-skip-btn" onclick="_cuSkip()" style="width:100%;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;touch-action:manipulation">Skip — I haven't had anything</button>
     </div>
 
     <div id="crew-modal-active" style="display:none">
@@ -1427,6 +1427,14 @@ async function joinCrewSessionWithCode(code) {
     const el = document.getElementById(`cu-${k}`);
     if (el) el.textContent = '0';
   });
+
+  // Wire buttons directly with captured ref+code
+  const confirmBtn = document.getElementById('cu-confirm-btn');
+  const skipBtn    = document.getElementById('cu-skip-btn');
+  const capturedRef  = ref;
+  const capturedCode = code;
+  if (confirmBtn) confirmBtn.onclick = () => _doJoin(_cuCounts, capturedRef, capturedCode);
+  if (skipBtn)    skipBtn.onclick    = () => _doJoin({},        capturedRef, capturedCode);
 
   // Open crew modal on catch-up step
   const modal = document.getElementById('crew-modal');
@@ -2368,6 +2376,14 @@ async function crewModalJoin() {
     if (el) el.textContent = '0';
   });
 
+  // Wire buttons directly with captured ref+code to avoid global state timing issues
+  const confirmBtn = document.getElementById('cu-confirm-btn');
+  const skipBtn    = document.getElementById('cu-skip-btn');
+  const capturedRef  = ref;
+  const capturedCode = code;
+  if (confirmBtn) confirmBtn.onclick = () => _doJoin(_cuCounts, capturedRef, capturedCode);
+  if (skipBtn)    skipBtn.onclick    = () => _doJoin({},        capturedRef, capturedCode);
+
   _showCrewModalStep('catchup');
 }
 
@@ -2387,10 +2403,11 @@ async function _cuSkip() {
   await _doJoin({});
 }
 
-async function _doJoin(catchupDrinks) {
-  const ref  = _pendingJoinRef;
-  const code = _pendingJoinCode;
-  if (!ref || !code) return;
+async function _doJoin(catchupDrinks, ref, code) {
+  // Accept direct args (preferred) or fall back to globals
+  ref  = ref  || _pendingJoinRef;
+  code = code || _pendingJoinCode;
+  if (!ref || !code) { showToast('⚠ Session reference lost — try again'); return; }
   _pendingJoinRef = null; _pendingJoinCode = null;
 
   // Apply catch-up drinks into S before writing payload
