@@ -439,6 +439,75 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
   </div>
 </div>
 
+<!-- CATCHUP MODAL — standalone, outside crew modal -->
+<div id="catchup-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:15000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px)">
+  <div style="background:var(--bg2);border:2px solid var(--accent);border-radius:20px;width:100%;max-width:420px;max-height:92dvh;overflow-y:auto;padding:24px 20px">
+    <div class="fm" style="font-size:9px;color:var(--accent);margin-bottom:4px;letter-spacing:.1em">CATCH UP 🍻</div>
+    <div class="fd" style="font-size:20px;color:var(--text);margin-bottom:4px">Already been drinking?</div>
+    <div class="fm" style="font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.5">Log drinks you had before joining so the leaderboard is accurate.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🍻</div>
+        <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">SMALL BEER</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="_cuAdj('smalls',-1)" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">−</button>
+          <span id="cu-smalls" class="fd" style="font-size:22px;color:var(--text);min-width:28px;text-align:center">0</span>
+          <button onclick="_cuAdj('smalls',1)" style="width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">+</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🍺</div>
+        <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">PINT</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="_cuAdj('pints',-1)" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">−</button>
+          <span id="cu-pints" class="fd" style="font-size:22px;color:var(--text);min-width:28px;text-align:center">0</span>
+          <button onclick="_cuAdj('pints',1)" style="width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">+</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🥃</div>
+        <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">SHOT</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="_cuAdj('shots',-1)" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">−</button>
+          <span id="cu-shots" class="fd" style="font-size:22px;color:var(--text);min-width:28px;text-align:center">0</span>
+          <button onclick="_cuAdj('shots',1)" style="width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">+</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🍷</div>
+        <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">WINE</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="_cuAdj('wines',-1)" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">−</button>
+          <span id="cu-wines" class="fd" style="font-size:22px;color:var(--text);min-width:28px;text-align:center">0</span>
+          <button onclick="_cuAdj('wines',1)" style="width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">+</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🍹</div>
+        <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">COCKTAIL</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="_cuAdj('cocktails',-1)" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">−</button>
+          <span id="cu-cocktails" class="fd" style="font-size:22px;color:var(--text);min-width:28px;text-align:center">0</span>
+          <button onclick="_cuAdj('cocktails',1)" style="width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">+</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">🌿</div>
+        <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">JOINTS</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="_cuAdj('joints',-1)" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">−</button>
+          <span id="cu-joints" class="fd" style="font-size:22px;color:var(--text);min-width:28px;text-align:center">0</span>
+          <button onclick="_cuAdj('joints',1)" style="width:32px;height:32px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;touch-action:manipulation;flex-shrink:0">+</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="cu-confirm-btn" style="width:100%;padding:16px;background:var(--accent);color:#000;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:16px;cursor:pointer;touch-action:manipulation;margin-bottom:10px;display:block">JOIN SESSION →</button>
+    <button id="cu-skip-btn" style="width:100%;padding:12px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;touch-action:manipulation;display:block">Skip — haven't had anything yet</button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <!-- ── CREW SESSION OVERLAY ── -->
 <div id="crew-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:6500;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:max(env(safe-area-inset-top,0px),16px) 16px max(env(safe-area-inset-bottom,0px),16px);overflow-y:auto">
@@ -481,73 +550,6 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
     </div>
 
     <!-- Already in a session -->
-    <!-- Catch-up step: pre-existing drinks before joining -->
-    <div id="crew-modal-catchup" style="display:none">
-      <div class="fm" style="font-size:9px;color:var(--accent);margin-bottom:4px">CATCH UP 🍻</div>
-      <div class="fd" style="font-size:18px;color:var(--text);margin-bottom:4px">Already been drinking?</div>
-      <div class="fm" style="font-size:11px;color:var(--muted);margin-bottom:18px">Log drinks you had before joining so the leaderboard is accurate.</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-          <div style="font-size:22px;margin-bottom:6px">🍻</div>
-          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">SMALL BEER</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-            <button onclick="_cuAdj('smalls',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
-            <span id="cu-smalls" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
-            <button onclick="_cuAdj('smalls',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-          <div style="font-size:22px;margin-bottom:6px">🍺</div>
-          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">PINT</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-            <button onclick="_cuAdj('pints',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
-            <span id="cu-pints" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
-            <button onclick="_cuAdj('pints',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-          <div style="font-size:22px;margin-bottom:6px">🥃</div>
-          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">SHOT</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-            <button onclick="_cuAdj('shots',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
-            <span id="cu-shots" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
-            <button onclick="_cuAdj('shots',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-          <div style="font-size:22px;margin-bottom:6px">🍷</div>
-          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">WINE</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-            <button onclick="_cuAdj('wines',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
-            <span id="cu-wines" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
-            <button onclick="_cuAdj('wines',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-          <div style="font-size:22px;margin-bottom:6px">🍹</div>
-          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">COCKTAIL</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-            <button onclick="_cuAdj('cocktails',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
-            <span id="cu-cocktails" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
-            <button onclick="_cuAdj('cocktails',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
-          </div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center">
-          <div style="font-size:22px;margin-bottom:6px">🌿</div>
-          <div class="fm" style="font-size:9px;color:var(--muted);margin-bottom:8px">JOINTS</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-            <button onclick="_cuAdj('joints',-1)" style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">−</button>
-            <span id="cu-joints" class="fd" style="font-size:20px;color:var(--text);min-width:24px;text-align:center">0</span>
-            <button onclick="_cuAdj('joints',1)" style="width:28px;height:28px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation">+</button>
-          </div>
-        </div>
-      </div>
-
-      <button id="cu-confirm-btn" onclick="_cuConfirm()" style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;cursor:pointer;touch-action:manipulation;margin-bottom:8px">JOIN SESSION →</button>
-      <button id="cu-skip-btn" onclick="_cuSkip()" style="width:100%;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;cursor:pointer;touch-action:manipulation">Skip — I haven't had anything</button>
-    </div>
-
     <div id="crew-modal-active" style="display:none">
       <div style="text-align:center;margin-bottom:18px">
         <div class="fm" style="font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.1em">YOUR SESSION CODE</div>
@@ -1428,18 +1430,7 @@ async function joinCrewSessionWithCode(code) {
     if (el) el.textContent = '0';
   });
 
-  // Wire buttons directly with captured ref+code
-  const confirmBtn = document.getElementById('cu-confirm-btn');
-  const skipBtn    = document.getElementById('cu-skip-btn');
-  const capturedRef  = ref;
-  const capturedCode = code;
-  if (confirmBtn) confirmBtn.onclick = () => _doJoin(_cuCounts, capturedRef, capturedCode);
-  if (skipBtn)    skipBtn.onclick    = () => _doJoin({},        capturedRef, capturedCode);
-
-  // Open crew modal on catch-up step
-  const modal = document.getElementById('crew-modal');
-  if (modal) modal.style.display = 'flex';
-  _showCrewModalStep('catchup');
+  _showCatchupModal(ref, code);
 }
 
 async function joinCrewSession() {
@@ -2311,10 +2302,33 @@ function closeCrewModal() {
 }
 
 function _showCrewModalStep(step) {
-  ['choose','creating','joining','catchup','active'].forEach(s => {
+  ['choose','creating','joining','active'].forEach(s => {
     const el = document.getElementById(`crew-modal-${s}`);
     if (el) el.style.display = s === step ? 'block' : 'none';
   });
+}
+
+function _showCatchupModal(ref, code) {
+  // Reset counters
+  ['smalls','pints','shots','wines','cocktails','joints'].forEach(k => {
+    _cuCounts[k] = 0;
+    const el = document.getElementById('cu-' + k);
+    if (el) el.textContent = '0';
+  });
+  // Wire buttons with direct closure over ref+code
+  const confirmBtn = document.getElementById('cu-confirm-btn');
+  const skipBtn    = document.getElementById('cu-skip-btn');
+  if (confirmBtn) confirmBtn.onclick = function() { _doJoin(_cuCounts, ref, code); };
+  if (skipBtn)    skipBtn.onclick    = function() { _doJoin({}, ref, code); };
+  // Close crew modal, show catchup modal
+  closeCrewModal();
+  const m = document.getElementById('catchup-modal');
+  if (m) m.style.display = 'flex';
+}
+
+function _closeCatchupModal() {
+  const m = document.getElementById('catchup-modal');
+  if (m) m.style.display = 'none';
 }
 
 function crewModalStep(step) {
@@ -2376,15 +2390,7 @@ async function crewModalJoin() {
     if (el) el.textContent = '0';
   });
 
-  // Wire buttons directly with captured ref+code to avoid global state timing issues
-  const confirmBtn = document.getElementById('cu-confirm-btn');
-  const skipBtn    = document.getElementById('cu-skip-btn');
-  const capturedRef  = ref;
-  const capturedCode = code;
-  if (confirmBtn) confirmBtn.onclick = () => _doJoin(_cuCounts, capturedRef, capturedCode);
-  if (skipBtn)    skipBtn.onclick    = () => _doJoin({},        capturedRef, capturedCode);
-
-  _showCrewModalStep('catchup');
+  _showCatchupModal(ref, code);
 }
 
 // ── Catch-up state ────────────────────────────────────────────────────────────
@@ -2432,6 +2438,7 @@ async function _doJoin(catchupDrinks, ref, code) {
 
   const total = Object.values(catchupDrinks).reduce((a,b) => a+b, 0);
   showToast(total > 0 ? `🔗 Joined! ${total} catch-up drink${total>1?'s':''} logged.` : `🔗 Joined session ${code}!`);
+  _closeCatchupModal();
   closeCrewModal();
 }
 
