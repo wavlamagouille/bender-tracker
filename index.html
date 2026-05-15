@@ -508,6 +508,19 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
   </div>
 </div>
 
+<!-- END SESSION CONFIRM MODAL -->
+<div id="end-session-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:20000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px)">
+  <div style="background:var(--bg2);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center">
+    <div style="font-size:40px;margin-bottom:14px">🛑</div>
+    <div class="fd" style="font-size:22px;color:var(--text);margin-bottom:8px">End session?</div>
+    <div class="fm" style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:24px">Your stats will be saved and the session will close.</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeEndSessionModal()" style="flex:1;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--text);cursor:pointer;touch-action:manipulation">Cancel</button>
+      <button onclick="closeEndSessionModal();endSession()" style="flex:1;padding:14px;background:var(--red);border:none;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:#fff;cursor:pointer;touch-action:manipulation">End it</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <!-- ── CREW SESSION OVERLAY ── -->
 <div id="crew-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:6500;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:max(env(safe-area-inset-top,0px),16px) 16px max(env(safe-area-inset-bottom,0px),16px);overflow-y:auto">
@@ -805,7 +818,7 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
         <span id="display-dist" class="fm" style="font-size:10px;color:var(--dim)">0.00 km</span>
       </div>
     </div>
-    <button class="btn-stop" onclick="endSession()">
+    <button class="btn-stop" onclick="confirmEndSession()">
       <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:white;stroke:none"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
       END SESSION
     </button>
@@ -1134,6 +1147,10 @@ html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:n
       <div class="fd" style="font-size:26px;line-height:1"><span class="glow-o" style="color:var(--gold)">CREW</span> LEADERBOARD</div>
       <div class="fm" style="font-size:9px;color:var(--muted)">ALL TIME · THE BOYS</div>
     </div>
+    <button onclick="_forceRefreshLeaderboard()" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:5px">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      REFRESH
+    </button>
   </div>
 
   <!-- COLLAPSIBLE CREW MAP -->
@@ -1563,12 +1580,14 @@ function _subscribeSession() {
     _rebuildLeaderboard();
     renderCrewSection();
     renderLeaderboardFromMembers();
+    _refreshOpenMemberModal(snap.key);
   });
   const onChildAdded = membersRef.on('child_added', snap => {
     CREW_MEMBERS[snap.key] = snap.val();
     _rebuildLeaderboard();
     renderCrewSection();
     renderLeaderboardFromMembers();
+    _refreshOpenMemberModal(snap.key);
   });
   const onChildRemoved = membersRef.on('child_removed', snap => {
     delete CREW_MEMBERS[snap.key];
@@ -2190,6 +2209,14 @@ function kickMember() {
   });
 }
 
+function _refreshOpenMemberModal(fbkey) {
+  // If member modal is open and showing this user, re-populate it live
+  if (!_currentMemberModal) return;
+  if (fbKey(_currentMemberModal) !== fbkey) return;
+  const m = CREW_MEMBERS[fbkey];
+  if (m) _populateMemberModal(m);
+}
+
 function closeMemberModal() {
   const modal = document.getElementById('member-modal');
   if (modal) modal.style.display = 'none';
@@ -2344,8 +2371,8 @@ function _applyCatchupDrinks() {
   if (_cuCounts.wines)     S.wines     = (S.wines     || 0) + _cuCounts.wines;
   if (_cuCounts.cocktails) S.cocktails = (S.cocktails || 0) + _cuCounts.cocktails;
   if (_cuCounts.joints)    S.joints    = (S.joints    || 0) + _cuCounts.joints;
-  // Push updated stats to Firebase
-  if (CREW_REF && USERNAME) CREW_REF.child(`members/${fbKey(USERNAME)}`).update(myMemberPayload());
+  // Push full payload immediately so leaderboard updates for everyone
+  if (CREW_REF && USERNAME) CREW_REF.child(`members/${fbKey(USERNAME)}`).set(myMemberPayload());
   const total = Object.values(_cuCounts).reduce((a,b) => a+b, 0);
   if (total > 0) showToast(`🍻 ${total} catch-up drink${total>1?'s':''} logged!`);
   _closeCatchupModal();
@@ -2560,6 +2587,20 @@ function sendCheers(id) {
 
 // ── Render leaderboard ────────────────────────────────────────────────────────
 function renderLeaderboardFromMembers() { renderLeaderboard(); }
+
+function _forceRefreshLeaderboard() {
+  if (!CREW_REF) { showToast('⚠ Not in a session'); return; }
+  const btn = document.querySelector('[onclick="_forceRefreshLeaderboard()"]');
+  if (btn) btn.style.opacity = '0.4';
+  CREW_REF.child('members').once('value', snap => {
+    CREW_MEMBERS = snap.val() || {};
+    _rebuildLeaderboard();
+    renderCrewSection();
+    renderLeaderboard();
+    if (btn) btn.style.opacity = '1';
+    showToast('✓ Leaderboard refreshed');
+  });
+}
 
 // ─── CREW MAP ─────────────────────────────────────────────────────────────────
 let LCrewMap = null, crewMapOpen = false, crewPinLayers = [];
@@ -3949,11 +3990,35 @@ async function _fetchNearby(lat, lng) {
 );
 out center;`;
 
+  const OVERPASS_MIRRORS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  ];
+
+  let data = null;
+  let lastErr = null;
+
   try {
-    const res  = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST', body: query
-    });
-    const data = await res.json();
+    for (const mirror of OVERPASS_MIRRORS) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch(mirror, {
+          method: 'POST', body: query, signal: controller.signal
+        });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        data = await res.json();
+        break; // success — stop trying mirrors
+      } catch(e) {
+        lastErr = e;
+        continue; // try next mirror
+      }
+    }
+
+    if (!data) throw lastErr || new Error('All mirrors failed');
+
     const nodes = data.elements || [];
 
     const drinkTypes = ['pub','bar','nightclub','biergarten'];
@@ -3999,7 +4064,8 @@ out center;`;
     _renderNearbySection(foodEl,   topFood,   '🌯', 'No open food spots within 3km');
 
   } catch(e) {
-    _nearbyError('Could not load spots — check your connection');
+    console.error('Nearby spots error:', e);
+    _nearbyError('Could not load spots — try again or move outside');
   }
 }
 
@@ -4378,6 +4444,16 @@ function startSession() {
   updateStats();
 }
 
+function confirmEndSession() {
+  const modal = document.getElementById('end-session-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeEndSessionModal() {
+  const modal = document.getElementById('end-session-modal');
+  if (modal) modal.style.display = 'none';
+}
+
 function endSession() {
   S.on=false; S.finalSec=S.sec;
   _stopTimer(); stopGPS(); _disableNoSleep();
@@ -4658,7 +4734,8 @@ function _startTimer() {
     document.getElementById('display-timer').textContent = fmtTime(S.sec);
     document.getElementById('status-timer').textContent  = fmtTime(S.sec);
     updateStats();
-    if (S.sec % 30 === 0 && S.sec > 0) pushMyStats();
+    if (S.sec % 10 === 0 && S.sec > 0 && CREW_CODE) pushMyStats();
+    else if (S.sec % 30 === 0 && S.sec > 0 && !CREW_CODE) pushMyStats();
   };
   tick(); // fire immediately so timer doesn't sit at 0 for 1 second
   timerInterval = setInterval(tick, 1000);
@@ -4745,6 +4822,9 @@ function addDrink(type) {
   if (type==='joint')    S.joints++;
 
   if (type !== 'joint' && type !== 'water') S.log.push({ sec: S.sec, g: ethanolG() });
+
+  // Push to crew leaderboard immediately on every drink
+  if (CREW_CODE) pushMyStats();
 
   document.getElementById('count-small').textContent    = S.smalls||0;
   document.getElementById('count-small').textContent    = S.smalls||0;
