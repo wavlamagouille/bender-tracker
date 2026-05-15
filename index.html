@@ -1943,7 +1943,7 @@ function _showLocationDeniedModal() {
   const isAndroid = /android/i.test(navigator.userAgent);
   const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
   let instruction = 'Open your browser settings, find this site under Permissions, and allow Location.';
-  if (isAndroid) instruction = 'Tap the 🔒 lock icon in Chrome's address bar → Permissions → Location → Allow, then try again.';
+  if (isAndroid) instruction = "Tap the 🔒 lock icon in Chrome's address bar → Permissions → Location → Allow, then try again.";
   if (isIOS)     instruction = 'Go to Settings → Safari → Location → Allow, then reload the app.';
 
   const modal = document.createElement('div');
@@ -2071,7 +2071,8 @@ function openMemberModal(username) {
         bph: parseFloat(b2)||0, bphStr: b2??'—',
         distKm: parseFloat((S.distM/1000).toFixed(2)),
         bac: parseFloat(calcBAC(ethanolG(), s2).toFixed(3)),
-        sessionOn: true, // always true when actively writing — onDisconnect sets to false duration: s2, venues: S.venues
+        sessionOn: true, // always true when actively writing — onDisconnect sets to false
+        duration: s2, venues: S.venues
       });
     }, 5000);
     return;
