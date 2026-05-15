@@ -1666,8 +1666,12 @@ function _applyCrewUI() {
   show('crew-section');
   renderCrewSection();
 
-  // Update modal if open
-  if (document.getElementById('crew-modal')?.style.display === 'flex') {
+  // Update modal if open — but don't override the creating step (it shows the code)
+  const _crewModal = document.getElementById('crew-modal');
+  const _creating  = document.getElementById('crew-modal-creating');
+  const _modalOpen = _crewModal?.style.display === 'flex';
+  const _showingCode = _creating?.style.display !== 'none';
+  if (_modalOpen && !_showingCode) {
     openCrewModal();
   }
 }
